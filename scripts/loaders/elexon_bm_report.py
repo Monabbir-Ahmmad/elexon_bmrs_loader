@@ -68,9 +68,11 @@ def loader_runner() -> None:
     event_manager = EventManager()
     csv_maker = CSVMaker(output_folder_path="curvefiles")
 
-    event_manager.subscribe("dataEmit", csv_maker)
+    event_manager.subscribe(event="dataEmit", listener=csv_maker)
 
     start_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%dT00:00:00.000Z')
     end_date = datetime.datetime.now().strftime('%Y-%m-%dT00:00:00.000Z')
 
-    get_elexon_bm_report(start_date, end_date, event_manager)
+    get_elexon_bm_report(start_date=start_date,
+                         end_date=end_date,
+                         event_manager=event_manager)
