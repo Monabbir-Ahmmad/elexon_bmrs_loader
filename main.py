@@ -5,7 +5,7 @@ import datetime
 
 def main():
     event_manager = EventManager()
-    csv_maker = CSVMaker()
+    csv_maker = CSVMaker(output_folder_path="curvefiles")
 
     event_manager.subscribe("dataEmit", csv_maker)
 
