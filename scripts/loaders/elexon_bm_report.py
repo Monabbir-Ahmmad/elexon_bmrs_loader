@@ -6,6 +6,7 @@ from scripts.utils.event_manager import EventManager
 from scripts.utils.csv_maker import CSVMaker
 
 BASE_URL = 'https://data.elexon.co.uk/bmrs/api/v1/generation/actual/per-type/wind-and-solar'
+
 SOURCE = 'elexon_bm_report'
 
 KEY_MAP = {
@@ -63,7 +64,7 @@ def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventMan
 
     event_manager.notify("dataEmit", transformed_data)
 
-def loader_runner():
+def loader_runner() -> None:
     event_manager = EventManager()
     csv_maker = CSVMaker(output_folder_path="curvefiles")
 
