@@ -1,7 +1,9 @@
 import requests
 import pandas as pd
 import datetime
-from scripts.event_manager import EventManager
+from dataclasses import dataclass
+from scripts.utils.event_manager import EventManager
+from scripts.utils.csv_maker import CSVMaker
 
 BASE_URL = 'https://data.elexon.co.uk/bmrs/api/v1/generation/actual/per-type/wind-and-solar'
 SOURCE = 'elexon_bm_report'
@@ -15,8 +17,14 @@ KEY_MAP = {
 
 REQUIRED_COLUMNS = ['date', 'value', 'keys', "name"]
 
+@dataclass
+class BMRSDataType:
+    date: str
+    value: float
+    keys: str
+    name: str
 
-def check_date_range(start_date: str, end_date: str):
+def check_date_range(start_date: str, end_date: str) -> None:
     start = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ')
     end = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S.%fZ')
     delta = end - start
@@ -26,17 +34,12 @@ def check_date_range(start_date: str, end_date: str):
     if delta.days < 0:
         raise ValueError("Start date should be before end date.")
 
-
-def fetch_data(url: str):
+def fetch_data(url: str) -> list[dict]:
     response = requests.get(url)
-
-    if response.status_code != 200:
-        raise ValueError(f"Failed to fetch data from API. Status code: {response.status_code}")
-
+    response.raise_for_status()
     return response.json().get("data", [])
 
-
-def transform_data(data: list[dict]):
+def transform_data(data: list[dict]) -> list[BMRSDataType]:
     if not data:
         return []
 
@@ -49,8 +52,7 @@ def transform_data(data: list[dict]):
     
     return df[REQUIRED_COLUMNS].to_dict(orient='records')
 
-
-def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventManager):
+def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventManager) -> None: 
     check_date_range(start_date, end_date)
 
     url = f'{BASE_URL}?format=json&from={start_date}&to={end_date}'
@@ -60,3 +62,14 @@ def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventMan
     transformed_data = transform_data(data)
 
     event_manager.notify("dataEmit", transformed_data)
+
+def loader_runner():
+    event_manager = EventManager()
+    csv_maker = CSVMaker(output_folder_path="curvefiles")
+
+    event_manager.subscribe("dataEmit", csv_maker)
+
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%dT00:00:00.000Z')
+    end_date = datetime.datetime.now().strftime('%Y-%m-%dT00:00:00.000Z')
+
+    get_elexon_bm_report(start_date, end_date, event_manager)
