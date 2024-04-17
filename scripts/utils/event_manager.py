@@ -1,7 +1,6 @@
 from collections import defaultdict
 from interfaces.subscriber import Subscriber
 
-
 class EventManager:
     def __init__(self):
         self.subscribers = defaultdict(list)
