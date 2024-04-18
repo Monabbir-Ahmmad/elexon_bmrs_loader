@@ -9,14 +9,14 @@ BASE_URL = 'https://data.elexon.co.uk/bmrs/api/v1/generation/actual/per-type/win
 
 SOURCE = 'elexon_bm_report'
 
+REQUIRED_COLUMNS = ['date', 'value', 'keys', "name"]
+
 KEY_MAP = {
     "psrType": "keys",
     "quantity": 'value',
     "settlementDate": "date",
     "settlementPeriod": "period",
 }
-
-REQUIRED_COLUMNS = ['date', 'value', 'keys', "name"]
 
 @dataclass
 class BMRSDataType:
@@ -26,8 +26,9 @@ class BMRSDataType:
     name: str
 
 def check_date_range(start_date: str, end_date: str) -> None:
-    start = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ')
-    end = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S.%fZ')
+    date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+    start = datetime.datetime.strptime(start_date, date_format)
+    end = datetime.datetime.strptime(end_date, date_format)
     delta = end - start
 
     if delta.days > 7:
@@ -35,8 +36,9 @@ def check_date_range(start_date: str, end_date: str) -> None:
     if delta.days < 0:
         raise ValueError("Start date should be before end date.")
 
-def fetch_data(url: str) -> list[dict]:
-    response = requests.get(url)
+def fetch_data(url: str, date_from: str, date_to: str) -> list[dict]:
+    params = {'from': date_from, 'to': date_to, "format": "json"}
+    response = requests.get(url=url, params=params)
     response.raise_for_status()
     return response.json().get("data", [])
 
@@ -56,9 +58,7 @@ def transform_data(data: list[dict]) -> list[BMRSDataType]:
 def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventManager) -> None: 
     check_date_range(start_date, end_date)
 
-    url = f'{BASE_URL}?format=json&from={start_date}&to={end_date}'
-
-    data = fetch_data(url)
+    data = fetch_data(url=BASE_URL, date_from=start_date, date_to=end_date)
 
     transformed_data = transform_data(data)
 
@@ -66,7 +66,7 @@ def get_elexon_bm_report(start_date: str, end_date: str, event_manager: EventMan
 
 def loader_runner() -> None:
     event_manager = EventManager()
-    csv_maker = CSVMaker(output_folder_path="curvefiles")
+    csv_maker = CSVMaker(output_file_name=SOURCE)
 
     event_manager.subscribe(event="dataEmit", listener=csv_maker)
 
