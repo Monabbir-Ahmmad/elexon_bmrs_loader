@@ -1,4 +1,4 @@
-from scripts.loaders.elexon_bm_report import loader_runner
+from scripts.loaders.terna_renewable import loader_runner
 
 def main():
     loader_runner()
