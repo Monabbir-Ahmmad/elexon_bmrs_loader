@@ -4,6 +4,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from os.path import join, dirname
 from dataclasses import dataclass
+from scripts.decorators.retry import retry
 from datetime import datetime, timedelta
 from scripts.utils.csv_maker import CSVMaker
 from scripts.utils.event_manager import EventManager
@@ -64,6 +65,7 @@ def get_access_token() -> str:
     return response.json().get("access_token")
 
 
+@retry(retries=3, delay=10, exceptions=(requests.HTTPError,), exception_condition=lambda e: e.response.status_code == 403)
 def fetch_data(url: str, access_token: str, date_from: str, date_to: str, types: list[str]) -> list[dict]:
     headers = {
         "Authorization": f"bearer {access_token}",
