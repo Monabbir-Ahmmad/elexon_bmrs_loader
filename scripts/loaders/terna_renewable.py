@@ -1,12 +1,12 @@
+import os
 import requests
 import pandas as pd
-import datetime
-import os
+from dotenv import load_dotenv
 from os.path import join, dirname
 from dataclasses import dataclass
-from scripts.utils.event_manager import EventManager
+from datetime import datetime, timedelta
 from scripts.utils.csv_maker import CSVMaker
-from dotenv import load_dotenv
+from scripts.utils.event_manager import EventManager
 
 load_dotenv(join(dirname(__file__), ".env"))
 
@@ -41,8 +41,8 @@ class RenewableDataType:
 
 
 def check_date_range(start_date: str, end_date: str) -> None:
-    start = datetime.datetime.strptime(start_date, "%d/%m/%Y")
-    end = datetime.datetime.strptime(end_date, "%d/%m/%Y")
+    start = datetime.strptime(start_date, "%d/%m/%Y")
+    end = datetime.strptime(end_date, "%d/%m/%Y")
     delta = end - start
 
     if delta.days < 0:
@@ -113,8 +113,12 @@ def loader_runner() -> None:
 
     event_manager.subscribe(event="dataEmit", listener=csv_maker)
 
-    start_date = datetime.datetime.now().strftime("01/%m/%Y")
-    end_date = datetime.datetime.now().strftime("%d/%m/%Y")
+    today = datetime.today()
+    first_day_of_month = today.replace(day=1)
+    last_day_of_month = today.replace(day=1, month=today.month % 12 + 1) - timedelta(days=1)
+
+    start_date = first_day_of_month.strftime("%d/%m/%Y")
+    end_date = last_day_of_month.strftime("%d/%m/%Y")
 
     get_terna_renewable_data(
         start_date=start_date,
