@@ -26,6 +26,8 @@ BGRO_CZC_TABLE_MAP = [
     "ro,bg,crossborderflow,mwh/h",
 ]
 
+DUPLICATE_KEYS = ["price,bg,eur/mwh"]
+
 
 @dataclass
 class DataType:
@@ -72,6 +74,8 @@ def get_ibex_dam_mcr_data(date: str, event_manager: EventManager) -> None:
 
     czc_table_data = parse_table_data(soup=html, table_class="czc-table", table_map=CZC_TABLE_MAP)
     bgro_czc_table_data = parse_table_data(soup=html, table_class="bgro-czc-table", table_map=BGRO_CZC_TABLE_MAP)
+
+    bgro_czc_table_data = [data for data in bgro_czc_table_data if data.keys not in DUPLICATE_KEYS]
 
     transformed_data = czc_table_data + bgro_czc_table_data
     
