@@ -1,4 +1,4 @@
-from scripts.loaders.terna_renewable import loader_runner
+from scripts.loaders.ibex_dam_mcr import loader_runner
 
 def main():
     loader_runner()
