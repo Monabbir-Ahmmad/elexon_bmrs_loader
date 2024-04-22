@@ -26,8 +26,7 @@ BGRO_CZC_TABLE_MAP = [
     "ro,bg,crossborderflow,mwh/h",
 ]
 
-DUPLICATE_KEYS = ["price,bg,eur/mwh"]
-
+DUPLICATE_KEYS = set(CZC_TABLE_MAP).intersection(BGRO_CZC_TABLE_MAP)
 
 @dataclass
 class DataType:
