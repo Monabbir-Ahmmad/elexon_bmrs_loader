@@ -17,17 +17,20 @@ CZC_TABLE_MAP = [
     "gr,bg,crossborderflow,mwh/h",
 ]
 
+# Use empty string to skip columns
 BGRO_CZC_TABLE_MAP = [
-    "price,bg,eur/mwh",
+    "",
     "price,ro,eur/mwh",
     "bg,ro,atc,mw",
     "ro,bg,atc,mw",
     "bg,ro,crossborderflow,mwh/h",
     "ro,bg,crossborderflow,mwh/h",
+    "",
+    "",
+    "",
+    "",
+    ""
 ]
-
-DUPLICATE_KEYS = set(CZC_TABLE_MAP).intersection(BGRO_CZC_TABLE_MAP)
-
 @dataclass
 class DataType:
     date: datetime
@@ -60,7 +63,7 @@ def parse_table_data(soup: BeautifulSoup, table_class: str, table_map: list[str]
         date_time = datetime.combine(date, time(hour=hour))
 
         for value, keys in zip(cells[2:], table_map):
-            if value:
+            if value and keys:
                 data.append(
                     DataType(date=date_time, value=float(value), keys=keys, name=SOURCE)
                 )
@@ -73,8 +76,6 @@ def get_ibex_dam_mcr_data(date: str, event_manager: EventManager) -> None:
 
     czc_table_data = parse_table_data(soup=html, table_class="czc-table", table_map=CZC_TABLE_MAP)
     bgro_czc_table_data = parse_table_data(soup=html, table_class="bgro-czc-table", table_map=BGRO_CZC_TABLE_MAP)
-
-    bgro_czc_table_data = [data for data in bgro_czc_table_data if data.keys not in DUPLICATE_KEYS]
 
     transformed_data = czc_table_data + bgro_czc_table_data
     
