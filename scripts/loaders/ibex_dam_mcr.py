@@ -49,14 +49,14 @@ def fetch_populated_html(url: str, date: str) -> BeautifulSoup:
         res = session.post(url, headers=headers, data=payload)
         res.raise_for_status()
         
-    return BeautifulSoup(res.text, features="html.parser")
+    return BeautifulSoup(res.text, features="lxml")
 
 
 def parse_table_data(soup: BeautifulSoup, table_class: str, table_map: list[str]) -> list[DataType]:
     table = soup.find("table", {"class": table_class})
     rows = table.find_all("tr")
     data = []
-    for row in rows[1:]:
+    for row in rows[1:]: # Skip header row
         cells = [cell.text for cell in row.find_all("td")]
         date = datetime.strptime(cells[0], "%Y-%m-%d")
         hour = int(cells[1]) - 1
